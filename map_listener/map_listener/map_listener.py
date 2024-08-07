@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid
+# LIKELY HERE NEED TO ADD NEW MSG,
+# EITHER FROM NEW MSG MADE BY USER, OR ALREADY USED MSG ELSEWHERE
 
 class MapListenerNode(Node):
 
@@ -11,7 +13,10 @@ class MapListenerNode(Node):
             'map',
             self.map_callback,
             10)
-        self.subscription  # prevent unused variable warning
+        # prevent unused variable warning
+        self.subscription
+
+        # as well as this, subscribe to any new topic that generates the [0,1] occupancy of cells in grid
 
     def map_callback(self, msg):
         map_width = msg.info.width
@@ -21,7 +26,8 @@ class MapListenerNode(Node):
         origin_y = msg.info.origin.position.y
 
         self.get_logger().info('Iterating over the map data:')
-        
+
+        # can calculate seperatly to index by exact cell's and their resolution [by integer index, instead of by cord decimal]
         for i in range(map_height):
             for j in range(map_width):
                 index = i * map_width + j
