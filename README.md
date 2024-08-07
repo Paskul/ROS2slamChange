@@ -16,13 +16,13 @@ In the `UpdateCell()` function of `Karto.h`, we find where this estimation occur
 
 ## Goals
 
-The final goal of this change would be able to read the cell occupancy value in a presentable manner communicated to other nodes in ROS2. In this solution we wish to view the occupancy map with the difference being cells that can output their exact probabilistic occupancy in a message, aligned in form to what is already communicated through `/map`. We no longer can only work with the state of cells, but instead, we wish to see the exact probability of occupancy of the cell communicated in this or a similar map message.
+The final goal of this change would be able to read the cell occupancy value in a presentable manner communicated to other nodes in ROS2. In this solution, we wish to view the occupancy map with the difference being cells that can output their exact probabilistic occupancy in a message, aligned in form to what is already communicated through `/map`. We no longer can only work with the state of cells, but instead, we wish to see the exact probability of occupancy of the cell communicated in this or a similar map message.
 
 In our briefly explored attempts at implementing this change, we attempted to publish the `hitRatio` variable alongside the rounded static state value from `pCell` in `toNavMap()`. This would require having to make a new message type from a new ROS2 node, following a similar format used for the occupancy map message [shown here](https://docs.ros.org/en/melodic/api/nav_msgs/html/msg/OccupancyGrid.html). This documentation shows that the `nav_msg` states occupancy probability is between \[0,100\] – though this is not the case in practice with `slam_toolbox` due to the traditional static cell states. It could suffice successfully implementing the change of the `pCell` value itself to be a rounded integer of probability between \[0-100\], though in doing this we must be certain that any other internal functions relying on `pCell` utilizing a state is corrected to account for this export change.
 
 In this testing, we discovered that one of these functions, `IsFree()` requires a cell state check for `GridStates_Free`, and it is required to do ray casts within our SLAM. We need to consider this and other internal functions that currently require reading cells through their occupancy states instead of the exact probability to operate correctly, and what changes would be needed to publish probabilistic occupancy without breaking existing functions.
 
-Otherwise, in extracting the `hitRatio`, there likely will need to be developed a messenger node capable of providing the data type to store the (ideally) double-type probability of each cell and integrate it into `slam_toolbox` parallel to the `int8[] map` state of `map.data` use. This means when we call cell 50 at index 50 of data at `data[50]`, we can assume our occupancy type indexing to be the same, where pulling an example of `occupancy[50]` with an occupancy of only 5% must interact with the same cell as `data[50]` which could show the state as free in our map. To implement this correctly, we need to ensure that the grid type stores the probability of occupancy as the entire occupancy map grows, and dynamically changes alongside the stored cell state grid during robot exploration without the potential for indexing issues.
+Otherwise, in extracting the `hitRatio`, there likely needs to be developed a messenger node capable of providing the data type to store the (ideally) double-type probability of each cell and integrate it into `slam_toolbox` parallel to the `int8[] map` state of `map.data` use. This means when we call cell 50 at index 50 of data at `data[50]`, we can assume our occupancy type indexing to be the same, where pulling an example of `occupancy[50]` with an occupancy of only 5% must interact with the same cell as `data[50]` which could show the state as free in our map. To implement this correctly, we need to ensure that the grid type stores the probability of occupancy as the entire occupancy map grows, and dynamically changes alongside the stored cell state grid during robot exploration without the potential for indexing issues.
 
 ## Environment
 
@@ -77,7 +77,7 @@ $ export TURTLEBOT3_MODEL=burger
 $ ros2 run turtlebot3_teleop teleop_keyboard
 ```
 
-To exactly replicate our enviornment from a new install of Ubuntu Linux - Jammy Jellyfish (22.04), follow these steps:
+To exactly replicate our environment from a new install of Ubuntu Linux - Jammy Jellyfish (22.04), follow these steps:
 
 ### Prerequisites
 
@@ -120,7 +120,7 @@ $ sudo apt install ros-humble-ros-base
 $ sudo apt install ros-dev-tools
 ```
 
-For simplicity, after a sucsessful install, at this point we can close our current terminal and test in new ones.
+For simplicity, after a successful install, at this point we can close our current terminal and test in new ones.
 
 5. **Test ROS2 install**
 
@@ -139,14 +139,14 @@ $ ros2 run demo_nodes_py listener
 
 We should now see messages communicated back and forth with one another. Now, we `CTRL-C` kill both current running ROS2 programs, and close one terminal to still have one, sourced terminal running.
 
-If we ever need to source a terminal to it's original ROS2 install, we can use 
+If we ever need to source a terminal to its original ROS2 install, we can use 
 ```bash
 $ source /opt/ros/humble/setup.bash
 ```
 
 6. **Install packages for slam_toolbox testing**
 
-In our singualar, sourced, and ready terminal, install our nessesary packges:
+In our single, sourced, and ready terminal, install our necessary packages:
 
 ```bash
 $ sudo apt update
@@ -160,13 +160,13 @@ $ sudo apt install ros-humble-turtlebot3-simulations
 $ sudo apt install ros-humble-gazebo-ros-pkgs
 ```
 
-After a succsessful install, lets consider dependencies:
+After a successful install, let's consider dependencies:
 
 ```bash
 $ rosdep update
 ```
 
-Though on first run we should be prompted that rosdep has not be initilized. If so, run:
+However, on the first run, we should be prompted that rosdep has not been initiated. If so, run:
 
 ```bash
 $ sudo rosdep init
@@ -211,7 +211,7 @@ $ colcon build --packages-select slam_toolbox
 
 8. **Test run slam_toolbox with required packages**
 
-As stated above, we now should be able to test our install using the following commands in new terminals:
+As stated above, we now should be able to test our installation using the following commands in new terminals:
 
 **Terminal 1:**
 
@@ -221,7 +221,7 @@ $ export TURTLEBOT3_MODEL=burger
 $ ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
 ```
 
-(If having issue with robot not appearing, try to `CTRL-C` `gazebo` and try again)
+(If having an issue with the robot not appearing, try to `CTRL-C` `gazebo` and try again)
 
 **Terminal 2:**
 
@@ -260,7 +260,7 @@ For successful implementation, it's required to understand how information is st
 
 For testing results, a simple ROS2 node can be made to pull data from topics that `slam_toolbox` already utilizes, such as `/map` to store our partial map data, as well as pulling the occupancy information from the desired form decided in development, either in a new message or as an existing message provided in `nav_msgs`. By comparing occupancy alongside state estimation in this new node, we can track to confirm if a cell's state estimation looks to correlate with its occupancy value at the same index while updates for both should be published simultaneously with one another. By confirming all indexes represent the same cell, and by successfully extracting the exact occupancy value data in a message (updated where our occupancy map typically would), we would then consider this change complete.
 
-An example node has been presented in this GitHub repo, with steps to setup being shown as the following in a new terminal:
+An example node has been presented in this GitHub repo, with steps to make a new node/package is shown as the following in a new terminal:
 
 ```bash
 $ source /opt/ros/humble/setup.bash
@@ -268,7 +268,7 @@ $ cd ~/ros2_ws/src
 $ ros2 pkg create --build-type ament_python map_listener
 ```
 
-After sucsessfully making the package, navigate to `setup.py` within the package (now in the `src` folder) and add the changes reflected in our GitHub repo upload. These changes are found in `setup.py`, which includes a new entry point formation, and `package.xml`, which includes new depends.
+After successfully making the package, navigate to `setup.py` within the package (now in the `src` folder) and add the changes reflected in our GitHub repo upload. These changes are found in `setup.py`, which includes a new entry point formation, and `package.xml`, which includes new depends.
 
 Then within the nested `map_listener` directory (which should have an `__init__.py` in the same folder), create `map_listener.py` and place our reflected GitHub sample node code in as well. Then build:
 
@@ -277,7 +277,7 @@ $ cd ~/ros2_ws
 $ colcon build --packages-select map_listener --symlink-install
 ```
 
-`symlink-install` allows us to make python script changes without rebuilding, but for good practice, rebuild the package (likely the same way) after making any other package changes. Rebuilding has to occur after any changes made with `slam_toolbox` even if only script changes have been made, as there are internal compiled dependencies. To correctly view output of the occuapcny grid in our sample starter code, we can run (while `slam_toolbox` is correctly running), in a new terminal:
+`symlink-install` allows us to make Python script changes without rebuilding, but for good practice, rebuild the package (likely the same way) after making any other package changes. Rebuilding has to occur after any changes made with `slam_toolbox` even if only script changes have been made, as there are internally compiled dependencies. To correctly view the output of the occupancy grid in our sample starter code, we can run (while `slam_toolbox` is correctly running), in a new terminal:
 
 ```bash
 $ source ~/ros2_ws/install/setup.bash
