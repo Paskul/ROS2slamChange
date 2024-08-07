@@ -27,7 +27,17 @@ class MapListenerNode(Node):
 
         self.get_logger().info('Iterating over the map data:')
 
-        # can calculate seperatly to index by exact cell's and their resolution [by integer index, instead of by cord decimal]
+        # can calculate seperatly to index by exact cell's and their resolution
+        # truthfully, index is prefered for now to show that a cell's occupancy lines up with it's static state value
+        
+        # by integer index
+        for i in range(map_height):
+            for j in range(map_width):
+                index = i * map_width + j
+                occupancy_value = msg.data[index]
+                self.get_logger().info(f"Grid Index: [{i}, {j}], Occupancy: {occupancy_value}")
+
+        # by cord decimal
         for i in range(map_height):
             for j in range(map_width):
                 index = i * map_width + j
