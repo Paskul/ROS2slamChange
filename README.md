@@ -6,7 +6,7 @@
 
 ## Overview
 
-The ROS2 library `slam_toolbox` found here can provide a reliable and consistent SLAM method of providing a dynamic map of a robot's environment represented through an occupancy grid. Cells in the occupancy grid comprise of three states: occupied, free, and unknown.
+The ROS2 library `slam_toolbox` found [here](https://github.com/SteveMacenski/slam_toolbox/tree/humble) can provide a reliable and consistent SLAM method of providing a dynamic map of a robot's environment represented through an occupancy grid. Cells in the occupancy grid comprise of three states: occupied, free, and unknown.
 
 For regular use, this is okay; however, when wishing to work within probabilities of our environment provided by SLAM, this is undesirable as instead of working in static states, we would want to work with the probability of cells: i.e., 80% likelihood of occupancy, or 20% likelihood of occupancy. To get this, we wish to extract the `hitRatio` of a cell calculated in `UpdateCell()`.
 
