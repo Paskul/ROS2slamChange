@@ -256,11 +256,11 @@ Following the prompt in `teleop_keyboard`, we should now notice the `burger` tur
 
 ## Solutions
 
-For successful implementation, it's required to understand how information is stored within a cell type, how these cells are stored/shown in an occupancy map, as well as how information from the occupancy map can be pushed into a ROS2 message. Other important functions to note for development include `UpdateCell()`, `GetValue()`, and `toNavMap()`.
+For successful implementation, it's required to understand how information is stored within a cell type, how these cells are stored/shown in an occupancy map, as well as how information from the occupancy map can be pushed into a ROS2 message. Other important functions to note for development include `UpdateCell()`, `GetValue()`, and `toNavMap()` in `slam_toolbox`.
 
-For testing results, a simple ROS2 node can be made to pull data from topics that `slam_toolbox` already utilizes, such as `/map` to store our partial map data, as well as pulling the occupancy information from the desired form decided in development, either in a new message or as an existing message provided in `nav_msgs`. By comparing occupancy alongside state estimation in this new node, we can track to confirm if a cell's state estimation looks to correlate with its occupancy value at the same index while updates for both should be published simultaneously with one another. By confirming all indexes represent the same cell, and by successfully extracting the exact occupancy value data in a message (updated where our occupancy map typically would), we would then consider this change complete.
+For testing results, a simple ROS2 node can be made to pull data from topics that `slam_toolbox` already utilizes, such as `/map` to store our partial map data, as well as pulling the occupancy information from the desired form decided in development, either in a new message or as an existing message provided in `nav_msgs`. By comparing occupancy alongside state estimation in this new node, we can track to confirm if a cell's state estimate looks to correlate with its occupancy value at the same index while updates for both should be published simultaneously with one another. By confirming all indexes represent the same cell, and by successfully extracting the exact occupancy value data in a message (updated where our occupancy map typically would), we would then consider this change complete.
 
-An example node has been presented in this GitHub repo, with steps to make a new node/package is shown as the following in a new terminal:
+An example node has been pushed in this GitHub repo, with steps to make a new node/package shown as the following in a new terminal:
 
 ```bash
 $ source /opt/ros/humble/setup.bash
