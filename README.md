@@ -287,3 +287,80 @@ $ ros2 run map_listener map_listener_node
 ## Summary
 
 In short, we wish to extract the `hitRatio` value from each cell in the occupancy grid in `slam_toolbox` through a message in ROS2 for other nodes to understand and view from the indexing of other map data. We desire this, as for our work, viewing cell probability as “a cell existing with 80% certainty” is much more useful than a state estimation of “this cell exists/doesn't exist”. With this data extraction, being able to index the exact occupancy of cells in a map alongside traditional map data allows for a seamless integration into our existing work, and would be necessary to formulate a map for our use.
+
+## Containerised Deployment
+
+### Create and Set-up
+
+First retrieve the modified `slam_toolbox` repository.
+
+```bash
+# If this doesn't already exist, them make a ros workspace
+mkdir -p ~/ros2_ws/src
+cd ros2_ws/src
+
+git clone -b humble https://github.com/juniorsundar-tii/slam_toolbox.git
+```
+
+Then, copy over the `Dockerfile` in this repository and paste it into the `~/ros2_ws/src` directory.
+
+Next copy over the command below exactly as it is in order to create the containerised environment.
+
+```bash
+# Build the Docker image
+cd ~/ros2_ws/src
+docker build -t=slam_ros_ws .
+
+# Run the temp_container instance to copy out the build and install files
+# This needs to be done ONCE
+docker run -it --name=temp_container slam_ros_ws /bin/bash &
+cd ~/ros2_ws
+rm -rf install build log
+docker cp temp_container:/ros_workspace/install install
+docker cp temp_container:/ros_workspace/log log
+docker cp temp_container:/ros_workspace/build build
+docker kill temp_container
+```
+
+Once complete, it is a good idea to create an alias for use later:
+
+```bash
+# Copy paste as it is
+echo "alias slam_ros_ws='docker run -it --network=host --ipc=host --pid=host --env UID=\$(id -u) --env GID=\$(id -g) -v ~/ros2_ws:/ros_workspace:rw -w /ros_workspace slam_ros_ws'" >> ~/.bashrc
+source ~/.bashrc
+```
+
+You can now use `colcon` and `ros2` commands as long as it is preceded by `slam_ros_ws`:
+
+```bash
+slam_ros_ws ros2 topic list
+slam_ros_ws colcon build
+...
+```
+
+### Updating (in Containers)
+
+As long as the `build`, `install` and `log` directories haven't been tampered with, you can simply make edits to the source code in the existing packages in the workpsace normally.
+
+> [!warning]
+> If something breaks and you are getting irreparable errors, or you want to add more packages to this environment then make sure to `commit` and `push` (vasically backup everything) your changes to the repository. Delete the entire `~/ros2_ws` and re-run:
+>
+> ```bash
+> # First clone the repository
+> mdkir -p ~/ros2_ws/src && cd ~/ros2_ws/src
+> # At this point you are free to add all of your packages in here.
+> # Copy over the Dockerfile
+> 
+> docker build -t=slam_ros_ws .
+> 
+> # Run the temp_container instance to copy out the build and install files
+> # This needs to be done ONCE
+> docker run -it --name=temp_container slam_ros_ws /bin/bash &
+> cd ~/ros2_ws
+> rm -rf install build log
+> docker cp temp_container:/ros_workspace/install install
+> docker cp temp_container:/ros_workspace/log log
+> docker cp temp_container:/ros_workspace/build build
+> docker kill temp_container
+> ```
+
